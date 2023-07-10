@@ -6,7 +6,6 @@ import 'package:mynotes/views/login_view.dart';
 import 'package:mynotes/views/register_view.dart';
 import 'package:mynotes/views/verify_email.dart';
 import 'firebase_options.dart';
-import 'dart:developer' as devtools show log;
 
 
 void main() {
@@ -21,7 +20,8 @@ void main() {
       routes:  {
         loginRoute:(context) => const LoginView(),
         registerRoute:(context) => const RegisterView(),
-        notesRoute:(context) => const NotesView()
+        notesRoute:(context) => const NotesView(),
+        verifyEmailRoute: (context) => const VerifyEmailView(),
       },
     ));
 }
@@ -40,6 +40,7 @@ class HomePage extends StatelessWidget {
         switch(snapshot.connectionState){
           case ConnectionState.done:
             final user = FirebaseAuth.instance.currentUser;
+            user?.reload();
             if(user != null){
               if(user.emailVerified){
                 return const NotesView();
