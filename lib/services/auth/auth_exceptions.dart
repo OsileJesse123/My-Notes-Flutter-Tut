@@ -11,6 +11,4 @@ class InvalidEmailAuthException implements Exception{}
 
 // generic exceptions
 class GenericAuthException implements Exception{}
-class UserNotLoggedInAuthException implements Exception{
-  void test(){}
-}
+class UserNotLoggedInAuthException implements Exception{}
