@@ -16,10 +16,16 @@ class NotesService {
 
   // All 3 of these is required to create a singleton in
   static final NotesService _shared = NotesService._sharedInstance();
-  NotesService._sharedInstance();
+  NotesService._sharedInstance(){
+    _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
+      onListen: () {
+        _notesStreamController.sink.add(_notes);
+      }
+    );
+  }
   factory NotesService() => _shared;
 
-  final _notesStreamController = StreamController<List<DatabaseNote>>.broadcast();
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
 
   Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
 
@@ -113,12 +119,9 @@ class NotesService {
       whereArgs: [id]
     );
     if(deletedCount == 0){
-      print("Note was not deleted");
       throw CouldNoteDeleteNote();
     } else {
-      print("Note was deleted $deletedCount");
       _notes.removeWhere((note) => note.id == id);
-      print("The Notes: $_notes");
       _notesStreamController.add(_notes);
     }
   }
@@ -277,7 +280,7 @@ class DatabaseNote{
    isSyncedWithCloud = (map[isSyncedWithCloudColumn] as int) == 1 ? true : false;
 
    @override
-  String toString() => "Note, ID = $id, userID = $userId, isSyncedWithCloud = $isSyncedWithCloud";
+  String toString() => "Note, ID = $id, userID = $userId, isSyncedWithCloud = $isSyncedWithCloud, text = $text";
 
   @override bool operator == (covariant DatabaseNote other) => id == other.id;
   
