@@ -14,7 +14,7 @@ class NotesService {
 
   List<DatabaseNote> _notes = [];
 
-  // All 3 of these is required to create a singleton in flutter.
+  // All 3 of these is required to create a singleton in
   static final NotesService _shared = NotesService._sharedInstance();
   NotesService._sharedInstance();
   factory NotesService() => _shared;
@@ -113,9 +113,12 @@ class NotesService {
       whereArgs: [id]
     );
     if(deletedCount == 0){
+      print("Note was not deleted");
       throw CouldNoteDeleteNote();
     } else {
+      print("Note was deleted $deletedCount");
       _notes.removeWhere((note) => note.id == id);
+      print("The Notes: $_notes");
       _notesStreamController.add(_notes);
     }
   }
@@ -132,12 +135,14 @@ class NotesService {
     }
 
     const text = "";
+    print("Note Id: Not yet");
     // create the note
     final noteId = await db.insert(noteTable, {
       userIdColumn: owner.id,
       textColumn: text,
       isSyncedWithCloudColumn: 1
-    });
+    },);
+    print("Note Id: $noteId");
 
     final note = DatabaseNote(
      id: noteId,
@@ -222,14 +227,16 @@ class NotesService {
       _db = db;
 
       await db.execute(createUserTable);
-      
+      await db.execute(createNoteTable);
+
       await _cacheNotes();
     }
     on MissingPlatformDirectoryException catch(_){
       throw UnableToGetDocumentsDirectory();
     }
+  
   }
-
+  
 }
 
 @immutable
@@ -285,19 +292,21 @@ const noteTable = "note";
 const userTable = "user";
 const idColumn = "id";
 const emailColumn = "email";
-const userIdColumn = "userId";
+// const userIdColumn = "userId";
+const userIdColumn = "user_id";
 const textColumn = "text";
-const isSyncedWithCloudColumn = "isSyncedWithCloud";
+// const isSyncedWithCloudColumn = "isSyncedWithCloud";
+const isSyncedWithCloudColumn = "is_synced_with_cloud";
 const createNoteTable = ''' 
-        CREATE TABLE IF NOT EXISTS "note"(
-        "id" INTEGER NOT NULL,
-        "text" TEXT
+        CREATE TABLE IF NOT EXISTS "note" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "text" TEXT,
         "is_synced_with_cloud" INTEGER NOT NULL DEFAULT 0,
-        FOREIGN KEY("user_id") REFERENCES "user"("id"),
-        PRIMARY KEY("id" AUTOINCREMENT)
-        );
+        "user_id" INTEGER,
+        FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+);
       ''';
-      const createUserTable = '''
+const createUserTable = '''
         CREATE TABLE IF NOT EXISTS "user" (
         "id" INTEGER NOT NULL,
         "email" TEXT NOT NULL UNIQUE,
