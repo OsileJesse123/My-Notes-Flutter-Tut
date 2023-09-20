@@ -5,6 +5,7 @@ import 'package:mynotes/services/auth/auth_exceptions.dart';
 import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
 import 'package:mynotes/services/auth/bloc/auth_event.dart';
+import '../services/auth/bloc/auth_state.dart';
 import '../utilities/dialogs/error_dialog.dart';
 
 
@@ -57,18 +58,25 @@ class _LoginViewState extends State<LoginView> {
             enableSuggestions: false,
             autocorrect: false,
           ),
-          TextButton(onPressed: () async{
-            try {
-              context.read<AuthBloc>().add(AuthEventLogIn(_email.text, _password.text));
-            } on UserNotFoundAuthException {
-              await showErrorDialog(context, "User not found");
-            } on WrongPasswordAuthException {
-              await showErrorDialog(context, "Wrong credentials");
-            } on GenericAuthException {
-              await showErrorDialog(context, "Authentication Error");
-            }
-            
-          }, child: const Text("Login")),
+          BlocListener<AuthBloc, AuthState>(
+            listener: (context, state) async{
+              if(state is AuthStateLoggedOut){
+                if(state.exception is UserNotFoundAuthException){
+                  await showErrorDialog(context, 'User not found');
+                } else if (state.exception is WrongPasswordAuthException){
+                  await showErrorDialog(context, 'Wrong credentials');
+                } else if (state.exception is GenericAuthException){
+                  await showErrorDialog(context, 'Authentication Error');
+                }
+              }
+            },
+            child: TextButton(
+              onPressed: () async{
+                context.read<AuthBloc>().add(AuthEventLogIn(_email.text, _password.text));
+              },
+              child: const Text("Login"),
+            ),
+          ),
           TextButton(onPressed: (){
             Navigator.of(context).pushNamedAndRemoveUntil(
               registerRoute,
